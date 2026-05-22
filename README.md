@@ -1,18 +1,118 @@
-# かえる留学 — AI-Augmented Quote & Knowledge Engine
+# Study Abroad Support AI
 
-An internal Next.js 16 dashboard for かえる留学 counselors with two cooperating
-modes:
+**An AI-augmented quote & knowledge engine for study-abroad agencies.**
 
-1. **Quote Engine** — Type a natural-language query (Japanese, English, or
-   mixed) and instantly receive a horizontal Kanban-style breakdown of
-   programme costs and AI-generated advice.
-2. **Upload Hub** — Drop ANY supplier PDF / Word / Excel / image / text into
-   the dashboard. Claude reads each file, extracts structured atoms
-   (schools, prices, campaigns, accommodations, rules, …) and writes them to
-   Supabase so the Quote Engine can cite them as **local sources**.
+Helps counselors answer “how much does this program cost?” in seconds — using
+**your own supplier documents first**, then cached data, then live web research
+only when local knowledge is not enough.
 
-The app uses a **local-knowledge-first, cache-second, live-scrape last** pipeline
-that self-heals the local database whenever new uploads or fresh scrapes arrive.
+Built for [かえる留学](https://github.com/evanclan/study-abroad) and **open for
+contributions**. See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+---
+
+## What problem does this solve?
+
+Study-abroad agencies receive a constant stream of supplier updates: PDF price
+lists, Word campaign briefs, Excel fee tables, scanned brochures, and ad-hoc
+emails. Counselors need to quote accurately and cite their sources — but the
+data is scattered and goes stale fast.
+
+This app turns that chaos into a **searchable knowledge base** and a **quote
+engine** that counselors use from one dashboard.
+
+## What it does
+
+### 1. Upload Hub — ingest supplier knowledge
+
+Drop any file into the dashboard:
+
+- PDF, Word, Excel, CSV, Markdown, JSON, images (PNG/JPG/WebP)
+
+The pipeline:
+
+1. Stores the original in Supabase Storage (deduped by content hash)
+2. Extracts text (`unpdf`, `mammoth`, `xlsx`, or Claude Vision for images)
+3. Runs Claude to pull out structured **entities**: schools, prices, campaigns,
+   accommodations, rules, contacts, locations, visa info, and more
+4. Saves everything to Postgres so it is searchable and citable
+
+Example: upload a Cebu language-school price list → the system learns tuition
+tiers, room types, campaign dates, and registration fees as individual atoms.
+
+### 2. Quote Engine — natural-language quotes with citations
+
+Counselors type a prompt in Japanese, English, or mixed, e.g.:
+
+```text
+26歳女性、フィリピンセブ、ビーチ近くの語学学校、4週間、英語コース、1人部屋希望、予算¥150,000
+```
+
+The engine:
+
+1. **Parses** the prompt into structured parameters (country, course, age,
+   duration, budget, preferences)
+2. **Searches local knowledge** — uploaded PDFs/Word files via `search_knowledge()`
+3. **Checks the quote cache** — previously scraped or computed quotes (< 30 days)
+4. **Falls back to live research** only if local data is insufficient — Firecrawl
+   scrapes school pages, parallel agents find schools, accommodation, location,
+   and activities
+5. **Streams results** to a Kanban-style UI with costs, budget fit, AI advice
+   in Japanese, and **links back to source documents**
+
+Every result is tagged **LOCAL** (from your database / uploads) or **LIVE**
+(from web research).
+
+## Data priority (local first)
+
+```
+Upload Hub documents  →  strongest (your supplier PDFs, with citations)
+        ↓
+Quote cache           →  recent scraped/computed quotes (< 30 days)
+        ↓
+Live web search       →  only when local knowledge is not enough
+```
+
+This keeps quotes fast, cheap (fewer API calls), and traceable to real supplier
+materials.
+
+## Who is this for?
+
+- **Study-abroad agencies** managing multi-country supplier networks
+- **Counselors** who quote in natural language and need source citations
+- **Developers** who want to extend AI document ingestion, search, or quote logic
+
+Currently single-tenant (no auth layer). Add Supabase Auth before exposing
+to the public internet.
+
+## Contributing
+
+Contributions are welcome! Whether you want to:
+
+- Add support for new document formats
+- Improve entity extraction for a country or supplier type
+- Tune knowledge search / quote matching
+- Build UI for counselors
+- Add tests and sample data
+
+Please read **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup and PR guidelines.
+
+**Quick start for contributors:**
+
+```bash
+git clone https://github.com/evanclan/study-abroad.git
+cd study-abroad
+npm install
+cp .env.local.example .env.local
+# Add your Supabase, Anthropic, and Firecrawl keys to .env.local
+npm run dev
+```
+
+Open an issue or PR on [GitHub](https://github.com/evanclan/study-abroad).
+
+---
 
 ## Architecture at a glance
 

@@ -11,6 +11,23 @@ contributions**. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
+## Screenshots
+
+### Quote Engine
+
+Natural-language prompts → instant cost breakdown, budget fit, AI advice, and
+source citations. Results stream in from **LOCAL** knowledge or **LIVE** web
+research.
+
+![Quote Engine — natural-language quote input with example prompts and recent search history](./docs/screenshots/quote-engine.png)
+
+### Upload Hub
+
+Drag-and-drop supplier PDFs, Word docs, Excel price lists, images, and text.
+Claude extracts searchable knowledge atoms and stores them in Supabase.
+
+![Upload Hub — drag-and-drop file ingest with metadata fields and knowledge base list](./docs/screenshots/upload-hub.png)
+
 ---
 
 ## What problem does this solve?
